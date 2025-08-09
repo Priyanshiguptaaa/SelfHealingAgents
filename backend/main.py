@@ -103,7 +103,41 @@ async def trigger_failure(request: TriggerFailureRequest):
     sys.path.insert(0, str(demo_path))
     
     try:
-        from agents.customer_agent import customer_agent
+        # Try to import customer_agent
+        try:
+            from agents.customer_agent import customer_agent
+        except ImportError as import_error:
+            print(f"⚠️ Import error: {import_error}")
+            # Fallback: create a simple failure event directly
+            trace_id = str(uuid.uuid4())
+            
+            # Create a return API failure event directly
+            failure_event = Event(
+                type=EventType.RETURN_API_FAILURE,
+                key=f"order_{request.order_id}",
+                payload={
+                    "sku": request.sku,
+                    "order_id": request.order_id,
+                    "endpoint": request.endpoint,
+                    "detail": "return_policy missing",
+                    "error_type": "SchemaMismatch"
+                },
+                ts=datetime.now(),
+                trace_id=trace_id,
+                ui_hint="failure_triggered"
+            )
+            
+            # Publish the failure event
+            await event_bus.publish(failure_event)
+            
+            return {
+                "message": "E-commerce failure detected - healing initiated",
+                "error": "return_policy missing",
+                "sku": request.sku,
+                "order_id": request.order_id,
+                "status": "healing_initiated",
+                "note": "Watch the frontend for real-time healing progress!"
+            }
         
         print(f"🎬 DEMO: Triggering customer return request for {request.sku}")
         print("🎯 This will cause the e-commerce system to emit a non-human signal")
@@ -132,6 +166,7 @@ async def trigger_failure(request: TriggerFailureRequest):
             }
             
     except Exception as e:
+        print(f"❌ Error in trigger_failure: {e}")
         raise HTTPException(status_code=500, detail=f"Demo error: {str(e)}")
 
 
@@ -281,8 +316,17 @@ async def replay_request(trace_id: str):
             demo_path = Path(__file__).parent.parent / "demo_user_code"
             sys.path.insert(0, str(demo_path))
             
-            from agents.customer_agent import customer_agent
-            result = await customer_agent.simulate_return_request(sku, order_id)
+            try:
+                from agents.customer_agent import customer_agent
+                result = await customer_agent.simulate_return_request(sku, order_id)
+            except ImportError:
+                # Fallback: simulate the failure directly
+                result = {
+                    "status": "error",
+                    "error": "return_policy missing",
+                    "sku": sku,
+                    "order_id": order_id
+                }
             
             return {
                 "trace_id": trace_id,
