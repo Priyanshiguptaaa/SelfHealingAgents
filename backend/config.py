@@ -10,9 +10,6 @@ class Settings(BaseSettings):
     use_redis: bool = False
     redis_url: str = "redis://localhost:6379"
     
-    # API Keys
-    morph_api_key: str = ""  # Get your key from https://morph.com
-    anthropic_api_key: str = "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"
     
     # App Settings
     environment: str = "development"
