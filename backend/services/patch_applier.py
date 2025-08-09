@@ -124,9 +124,15 @@ class PatchApplier:
     async def _read_original_content(self, file_path: str) -> str:
         """Read the original content of a file"""
         
-        # For demo purposes, return the sample catalog_sync.py content
+        # For demo purposes, read from the demo user codebase
         if "catalog_sync.py" in file_path:
-            return '''#!/usr/bin/env python3
+            demo_file_path = "demo_user_code/services/catalog_sync.py"
+            try:
+                with open(demo_file_path, 'r') as f:
+                    return f.read()
+            except FileNotFoundError:
+                # Fallback to hardcoded content if file doesn't exist
+                return '''#!/usr/bin/env python3
 """Catalog synchronization service"""
 
 import requests
@@ -166,20 +172,29 @@ class CatalogSync:
         return "# Original file content"
     
     async def _write_file_content(self, file_path: str, content: str) -> bool:
-        """Write content to a file (simulated for demo)"""
+        """Write content to a file"""
         
         try:
-            # In production, this would write to the actual file
-            print(f"📝 Writing {len(content)} characters to {file_path}")
+            # For demo purposes, write to the actual demo user file
+            if "catalog_sync.py" in file_path:
+                demo_file_path = "demo_user_code/services/catalog_sync.py"
+                
+                # Ensure directory exists
+                import os
+                os.makedirs(os.path.dirname(demo_file_path), exist_ok=True)
+                
+                with open(demo_file_path, 'w') as f:
+                    f.write(content)
+                
+                print(f"📝 Writing {len(content)} characters to {demo_file_path}")
+                return True
             
-            # For demo, just log the change
-            if "return_policy" in content and "POLICY_FIELDS" in content:
-                print("✅ Successfully added 'return_policy' to POLICY_FIELDS")
-            
+            # For other files, simulate the write
+            print(f"📝 Simulated write to {file_path}: {len(content)} characters")
             return True
             
         except Exception as e:
-            print(f"❌ Error writing file: {str(e)}")
+            print(f"❌ Error writing file {file_path}: {str(e)}")
             return False
     
     async def _restore_from_backup(self, file_path: str, backup_path: str) -> bool:

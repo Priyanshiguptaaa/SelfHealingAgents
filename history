@@ -8,3 +8,92 @@ pip install -r requirements.txt
 cd /Users/priyanshigupta/Hackathons/SelfHealingAgents/backend
 source ../.venv/bin/activate
 pip install pydantic-settings
+source /Users/priyanshigupta/Hackathons/SelfHealingAgents/.venv/bin/activate
+cd backend
+pip3 install -r requirements.txt
+python3 main.py
+git stash
+git pull
+python3 main.py
+git stash pop
+python3 main.py
+python3 main.py
+python3 main.py
+python main.py
+python3 main.py
+python3 main.py
+source /Users/priyanshigupta/Hackathons/SelfHealingAgents/.venv/bin/activate
+curl http://localhost:8000/health
+cd frontend
+   npm install
+npm run dev
+python main.py
+chmod +x setup-frontend.sh
+git status
+git rm frontend/node_modules/.package-lock.json frontend/node_modules/.vite/deps/_metadata.json
+git rm -r --cached backend/__pycache__ backend/agents/__pycache__ backend/models/__pycache__ backend/services/__pycache__ frontend/node_modules/ || true
+git add .
+cd backend && python -c "\
+import asyncio\
+from config import settings\
+print('ðƒ¿ƒ´§ Configuration Check:')\
+print(f'Anthropic API Key: {\"SET\" if settings.anthropic_api_key else \"NOT SET\"}')\
+print(f'Morph API Key: {\"SET\" if settings.morph_api_key else \"NOT SET (will use simulation)\"}')\
+print(f'Database URL: {settings.database_url}')\
+print(f'Use Redis: {settings.use_redis}')\
+print('âƒ¼ƒ¥ Configuration loaded successfully')\
+"
+python3 -c "\
+import sys\
+sys.path.append('.')\
+from config import settings\
+print('ðƒ¿ƒ´§ Configuration Check:')\
+print(f'Anthropic API Key: {\"SET\" if settings.anthropic_api_key else \"NOT SET\"}')\
+print(f'Morph API Key: {\"SET\" if settings.morph_api_key else \"NOT SET (will use simulation)\"}')\
+print(f'Database URL: {settings.database_url}')\
+print(f'Use Redis: {settings.use_redis}')\
+print('âƒ¼ƒ¥ Configuration loaded successfully')\
+"
+cd .. && ls -la | grep venv
+source .venv/bin/activate && cd backend && python -c "\
+from config import settings\
+print('ðƒ¿ƒ´§ Configuration Check:')\
+print(f'Anthropic API Key: {\"SET\" if settings.anthropic_api_key else \"NOT SET\"}')\
+print(f'Morph API Key: {\"SET\" if settings.morph_api_key else \"NOT SET (will use simulation)\"}')\
+print(f'Database URL: {settings.database_url}')\
+print(f'Use Redis: {settings.use_redis}')\
+print('âƒ¼ƒ¥ Configuration loaded successfully')\
+"
+sleep 3 && curl -X POST http://localhost:8000/api/trigger-failure -H "Content-Type: application/json" -d '{"sku": "SKU-1001", "order_id": "ORD-001"}' | jq .
+curl -N http://localhost:8000/api/events/stream
+source .venv/bin/activate && cd backend && python main.py
+cd frontend && npm start
+source .venv/bin/activate && cd backend && python main.py
+source .venv/bin/activate && cd backend && python main.py
+sleep 3 && curl -s http://localhost:8000/health | jq .
+sleep 8 && curl -s http://localhost:5173/ | head -20
+curl -X POST http://localhost:8000/api/trigger-failure -H "Content-Type: application/json" -d '{"sku": "SKU-1001", "order_id": "ORD-001"}' | jq .
+timeout 10 curl -N http://localhost:8000/api/events/stream | head -10
+curl -m 5 -N http://localhost:8000/api/events/stream
+curl -s http://localhost:8000/api/active-healings | jq .
+curl -v -X POST http://localhost:8000/api/trigger-failure -H "Content-Type: application/json" -d '{"sku": "SKU-1001", "order_id": "ORD-001"}'
+pkill -f "python.*main.py"
+sleep 5 && curl -X POST http://localhost:8000/api/trigger-failure -H "Content-Type: application/json" -d '{"sku": "SKU-1001", "order_id": "ORD-001"}' | jq .
+ps aux | grep python
+kill 97652
+sleep 5 && curl -X POST http://localhost:8000/api/trigger-failure -H "Content-Type: application/json" -d '{"sku": "SKU-1001", "order_id": "ORD-001"}'
+curl -s http://localhost:8000/ | jq .
+ls -la backend/
+rm -rf backend/demo_user_code
+pkill -f "python.*main.py" && sleep 2
+sleep 5 && curl -X POST http://localhost:8000/api/trigger-failure -H "Content-Type: application/json" -d '{"sku": "SKU-1001", "order_id": "ORD-001"}'
+curl -X POST http://localhost:8000/api/trigger-failure -H "Content-Type: application/json" -d '{"sku": "SKU-1001", "order_id": "ORD-001"}'
+cd demo_user_code && python -c "from agents.customer_agent import customer_agent; print('Import successful')"
+cd .. && source .venv/bin/activate && cd demo_user_code && python -c "from agents.customer_agent import customer_agent; print('Import successful')"
+cd .. && curl -X POST http://localhost:8000/api/trigger-failure -H "Content-Type: application/json" -d '{"sku": "SKU-1001", "order_id": "ORD-001"}'
+pkill -f "python.*main.py"
+sleep 5 && curl -X POST http://localhost:8000/api/trigger-failure -H "Content-Type: application/json" -d '{"sku": "SKU-1001", "order_id": "ORD-001"}'
+source .venv/bin/activate && cd backend && python main.py
+cd backend && python main.py
+python3 main.py
+python main.py

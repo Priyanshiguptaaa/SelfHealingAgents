@@ -79,62 +79,72 @@ class PatchGenerator:
             return None
     
     def _create_update_snippet(self, patch_spec: Dict[str, Any], original_code: str) -> str:
-        """Create update snippet based on patch specification"""
+        """Create update snippet for Morph Fast Apply"""
         
         change_type = patch_spec.get("type", "unknown")
         
         if change_type == "add_field":
-            # For adding a field to a list
+            # Use Morph Fast Apply format from docs
             field_to_add = patch_spec.get("change", "").replace("+ ", "").strip("'\"")
-            anchor = patch_spec.get("anchor", "")
             
-            return f"""
+            return f'''
 <update>
-Add '{field_to_add}' to the {anchor} list in the appropriate location.
-If {anchor} is a list like ["field1", "field2"], add "{field_to_add}" to it.
+Add '{field_to_add}' to the POLICY_FIELDS list in the appropriate location.
+If POLICY_FIELDS is a list like ["field1", "field2"], add "{field_to_add}" to it.
 </update>
-"""
+POLICY_FIELDS = ["price", "inventory", "category", "{field_to_add}"]
+'''
         
         elif change_type == "add_default":
             field = patch_spec.get("field", "unknown_field")
-            return f"""
+            return f'''
 <update>
 Add a default value for the '{field}' field when it's missing.
 Add a fallback like: {field} = response.get('{field}', 'DEFAULT_VALUE')
 </update>
-"""
+# Add default for missing {field}
+{field} = response.get('{field}', 'DEFAULT_VALUE')
+'''
         
         else:
-            # Generic update based on change description
+            # Generic update
             change = patch_spec.get("change", "")
-            return f"""
+            return f'''
 <update>
 {change}
 </update>
-"""
+'''
     
     async def _call_morph_apply(self, original_code: str, update_snippet: str) -> Optional[str]:
         """Call Morph Apply API to merge the update"""
         
-        # For demo purposes, simulate Morph API behavior
-        # In production, you'd call the actual Morph API
-        if settings.morph_api_key == "your_morph_api_key_here":
+        # Use simulation if no API key is set
+        if (settings.morph_api_key == "" or 
+            settings.morph_api_key == "your_morph_api_key_here"):
             return self._simulate_morph_apply(original_code, update_snippet)
             
         try:
+            # Use OpenAI-compatible format as per Morph docs
             headers = {
                 "Authorization": f"Bearer {settings.morph_api_key}",
                 "Content-Type": "application/json"
             }
             
+            # Format according to Morph Fast Apply documentation
+            prompt = f"<instruction>I am adding the missing return_policy field to the POLICY_FIELDS list to fix the schema validation issue.</instruction>\n<code>{original_code}</code>\n<update>{update_snippet}</update>"
+            
             payload = {
-                "original_code": original_code,
-                "update": update_snippet,
-                "model": "morph-apply-v1"
+                "model": "morph-v3-large",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ]
             }
             
             response = await self.client.post(
-                f"{self.morph_base_url}/apply",
+                "https://api.morphllm.com/v1/chat/completions",
                 json=payload,
                 headers=headers,
                 timeout=30.0
@@ -142,7 +152,7 @@ Add a fallback like: {field} = response.get('{field}', 'DEFAULT_VALUE')
             
             if response.status_code == 200:
                 result = response.json()
-                return result.get("updated_code")
+                return result["choices"][0]["message"]["content"]
             else:
                 print(f"Morph API error: {response.status_code} - {response.text}")
                 return None
