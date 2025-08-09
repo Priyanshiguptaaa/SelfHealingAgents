@@ -1,12 +1,13 @@
 import os
 from typing import List
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    # Database
-    database_url: str = "postgresql://postgres:password@localhost:5432/selfheal"
+    # Database - Using SQLite for simplicity
+    database_url: str = "sqlite:///./selfheal.db"
     
-    # Redis
+    # Use in-memory event bus instead of Redis
+    use_redis: bool = False
     redis_url: str = "redis://localhost:6379"
     
     # API Keys
