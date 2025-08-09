@@ -1,0 +1,5 @@
+{"id": "q1", "q": "Can I return the Aurora Dress if it doesn't fit?", "expect_regex": "(?i)30\\s*days|within 30"}
+{"id": "q2", "q": "What's your general return window?", "expect_regex": "(?i)30\\s*days|within 30"}
+{"id": "q3", "q": "If I return unused City Sneakers, how long until I get a refund?", "expect_regex": "(?i)5\\s*\u2013?\\s*10\\s*business\\s*days|5-10"}
+{"id": "q4", "q": "Do items need to be in original packaging for a return?", "expect_regex": "(?i)original\\s*packaging|unused"}
+{"id": "q5", "q": "Can I return the Weekend Hoodie?", "expect_regex": "(?i)30\\s*days|within 30"}

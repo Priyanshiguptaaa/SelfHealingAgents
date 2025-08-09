@@ -1,0 +1,5 @@
+{"sku": "SKU-1001", "name": "Everyday Tee", "category": "tops", "is_clearance": true, "price": 18.0}
+{"sku": "SKU-1002", "name": "Linen Pants", "category": "bottoms", "is_clearance": false, "price": 59.0}
+{"sku": "SKU-1003", "name": "Weekend Hoodie", "category": "tops", "is_clearance": true, "price": 35.0}
+{"sku": "SKU-2001", "name": "City Sneakers", "category": "shoes", "is_clearance": false, "price": 89.0}
+{"sku": "SKU-3001", "name": "Aurora Dress", "category": "dresses", "is_clearance": false, "price": 120.0}

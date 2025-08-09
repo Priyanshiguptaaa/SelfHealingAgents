@@ -1,0 +1,47 @@
+{
+  "scores": {
+    "baseline_v1": 100.0,
+    "after_v1_bug": 57.1,
+    "after_v2_fixed": 100.0
+  },
+  "sample_fails_v1": [
+    {
+      "id": "q5",
+      "q": "Can I return the Everyday Tee?",
+      "out": "You can return the Everyday Tee within 30 days if unused and in original packaging.",
+      "pass": false
+    },
+    {
+      "id": "q6",
+      "q": "Is the Weekend Hoodie returnable if worn once?",
+      "out": "You can return the Weekend Hoodie within 30 days if unused and in original packaging.",
+      "pass": false
+    },
+    {
+      "id": "q7",
+      "q": "I bought the clearance Weekend Hoodie yesterday\u2014can I exchange sizes?",
+      "out": "You can return the Weekend Hoodie within 30 days if unused and in original packaging.",
+      "pass": false
+    }
+  ],
+  "sample_passes_v2": [
+    {
+      "id": "q1",
+      "q": "Can I return the Aurora Dress if it doesn't fit?",
+      "out": "You can return the Aurora Dress within 30 days if unused and in original packaging.",
+      "pass": true
+    },
+    {
+      "id": "q2",
+      "q": "What's your general return window?",
+      "out": "You can return items within 30 days of delivery.",
+      "pass": true
+    },
+    {
+      "id": "q3",
+      "q": "If I return unused City Sneakers, how long until I get a refund?",
+      "out": "Refunds are issued within 5\u201310 business days after inspection.",
+      "pass": true
+    }
+  ]
+}

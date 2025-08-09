@@ -299,3 +299,6 @@ docker-compose.override.yml
 # Local development
 .local/
 local/ 
+=======
+.DS_Store
+

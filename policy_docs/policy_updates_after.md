@@ -1,0 +1,1 @@
+2025-08-09: Clearance items are FINAL SALE (no returns or exchanges).
