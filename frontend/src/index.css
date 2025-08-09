@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .status-badge {
+    @apply px-3 py-1 rounded-full text-sm font-medium;
+  }
+  
+  .status-badge.success {
+    @apply bg-success-50 text-success-600;
+  }
+  
+  .status-badge.error {
+    @apply bg-error-50 text-error-600;
+  }
+  
+  .status-badge.warning {
+    @apply bg-warning-50 text-warning-600;
+  }
+  
+  .status-badge.info {
+    @apply bg-primary-50 text-primary-600;
+  }
+} 
