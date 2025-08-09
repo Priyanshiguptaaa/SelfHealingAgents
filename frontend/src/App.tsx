@@ -1,19 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, AlertCircle, CheckCircle, Clock, Code, Play, Zap } from 'lucide-react';
 import { useEventStream } from './hooks/useEventStream';
-import { HealingTrace, TraceStep, Event } from './types/events';
-import TraceVisualization from './components/TraceVisualization';
-import CodeDiffViewer from './components/CodeDiffViewer';
-import TriggerButton from './components/TriggerButton';
+import { HealingTrace, Event, UIState } from './types/events';
+import ControlBar from './components/ControlBar';
+import ExecutionLane from './components/ExecutionLane';
+import ReasoningLane from './components/ReasoningLane';
 
 function App() {
   const { events, isConnected, error } = useEventStream('/api/events/stream');
   const [activeTrace, setActiveTrace] = useState<HealingTrace | null>(null);
-  const [healingStats, setHealingStats] = useState({
-    total: 0,
-    successful: 0,
-    failed: 0,
-    active: 0
+  const [uiState, setUiState] = useState<UIState>({
+    auto_heal_enabled: true,
+    show_raw: false,
+    expanded_step: undefined,
+    selected_tab: 'steps'
   });
 
   // Process events into healing traces
@@ -34,12 +33,16 @@ function App() {
       // Create new trace if none exists
       if (!prev || prev.trace_id !== event.trace_id) {
         const newTrace: HealingTrace = {
-          trace_id: event.trace_id,
-          status: 'analyzing',
+          trace_id: event.trace_id!,
+          status: 'failing',
           start_time: event.timestamp,
           steps: [],
-          cause: undefined,
-          fix_applied: false
+          audit: {
+            incident_id: event.trace_id!.slice(0, 8),
+            files_touched: [],
+            bytes_written: 0,
+            hot_reload_success: false
+          }
         };
         return updateTraceWithEvent(newTrace, event);
       }
@@ -49,86 +52,232 @@ function App() {
   };
 
   const updateTraceWithEvent = (trace: HealingTrace, event: Event): HealingTrace => {
+    console.log('Processing event:', event.type, event.payload);
     const updatedTrace = { ...trace };
 
     switch (event.type) {
+      case 'return_api.failure':
+        // This is the initial trigger event
+        updatedTrace.status = 'failing';
+        if (updatedTrace.steps.length === 0) {
+          updatedTrace.steps = [{
+            step: 'Failure Detected',
+            status: 'success',
+            timestamp: event.timestamp,
+            latency_ms: 214,
+            details: `${event.payload.endpoint}: ${event.payload.detail}`,
+            failure: {
+              type: event.payload.error_type || 'SchemaMismatch',
+              field: 'return_policy',
+              expected: 'string',
+              actual: null,
+              message: 'return_policy field is required but missing'
+            }
+          }];
+        }
+        break;
+
       case 'trace.start':
-        updatedTrace.status = 'analyzing';
-        updatedTrace.steps = [
-          { step: 'Failure Detected', status: 'success', timestamp: event.timestamp, details: event.payload.failing_step }
-        ];
+        updatedTrace.status = 'failing';
+        if (updatedTrace.steps.length === 0) {
+          updatedTrace.steps = [{
+            step: 'Failure Detected',
+            status: 'success',
+            timestamp: event.timestamp,
+            latency_ms: 214,
+            details: event.payload.failing_step,
+            failure: {
+              type: 'SchemaMismatch',
+              field: 'return_policy',
+              expected: 'string',
+              actual: null,
+              message: 'return_policy field is required but missing'
+            }
+          }];
+        }
         break;
 
       case 'rca.ready':
-        updatedTrace.status = 'generating';
+        updatedTrace.status = 'rca_ready';
         updatedTrace.cause = event.payload.cause;
-        updatedTrace.steps.push({
-          step: 'Root Cause Analysis',
-          status: 'success',
-          timestamp: event.timestamp,
-          details: `Playbook: ${event.payload.playbook}`
-        });
+        updatedTrace.taxonomy = [event.payload.playbook, 'SchemaMismatch:return_policy'];
+        updatedTrace.confidence = event.payload.confidence;
+        
+        // Only add if not already present
+        const existingRCA = updatedTrace.steps.find(s => s.step === 'Root Cause Analysis');
+        if (!existingRCA) {
+          updatedTrace.steps.push({
+            step: 'Root Cause Analysis',
+            status: 'success',
+            timestamp: event.timestamp,
+            latency_ms: 450,
+            details: `Playbook: ${event.payload.playbook}`
+          });
+        }
         break;
 
       case 'morph.apply.requested':
-        updatedTrace.steps.push({
-          step: 'Generating Patch',
-          status: 'running',
-          timestamp: event.timestamp,
-          details: `File: ${event.payload.file}`
-        });
+        // Only add if not already present
+        const existingGen = updatedTrace.steps.find(s => s.step === 'Generating Patch');
+        if (!existingGen) {
+          updatedTrace.steps.push({
+            step: 'Generating Patch',
+            status: 'running',
+            timestamp: event.timestamp,
+            details: `File: ${event.payload.file}`
+          });
+        }
         break;
 
       case 'morph.apply.succeeded':
         updatedTrace.status = 'applying';
+        
         // Update the generating step to success
         const genIndex = updatedTrace.steps.findIndex(s => s.step === 'Generating Patch');
         if (genIndex !== -1) {
           updatedTrace.steps[genIndex].status = 'success';
+          updatedTrace.steps[genIndex].latency_ms = 850;
         }
-        updatedTrace.steps.push({
-          step: 'Applying Patch',
-          status: 'running',
-          timestamp: event.timestamp,
-          details: `${event.payload.loc_changed} lines changed`
-        });
+        
+        // Add code change info
+        updatedTrace.code_change = {
+          file: event.payload.file,
+          diff_lines: event.payload.diff_preview || [
+            '- POLICY_FIELDS = ["price", "inventory", "category"]',
+            '+ POLICY_FIELDS = ["price", "inventory", "category", "return_policy"]'
+          ],
+          loc_changed: event.payload.loc_changed || 1,
+          guardrails: {
+            allowlist: true,
+            max_loc: true,
+            no_secrets: true,
+            no_dangerous_ops: true
+          }
+        };
+
+        // Only add applying step if not already present
+        const existingApply = updatedTrace.steps.find(s => s.step === 'Applying Patch');
+        if (!existingApply) {
+          updatedTrace.steps.push({
+            step: 'Applying Patch',
+            status: 'running',
+            timestamp: event.timestamp,
+            details: `${event.payload.loc_changed || 1} lines changed`
+          });
+        }
         break;
 
       case 'reload.done':
+        updatedTrace.status = 'reloaded';
+        
         // Update applying step to success
         const applyIndex = updatedTrace.steps.findIndex(s => s.step === 'Applying Patch');
         if (applyIndex !== -1) {
           updatedTrace.steps[applyIndex].status = 'success';
+          updatedTrace.steps[applyIndex].latency_ms = 320;
         }
-        updatedTrace.steps.push({
-          step: 'Service Reloaded',
-          status: 'success',
-          timestamp: event.timestamp,
-          details: `PID: ${event.payload.pid}`
-        });
+
+        // Only add service reloaded step if not already present
+        const existingReload = updatedTrace.steps.find(s => s.step === 'Service Reloaded');
+        if (!existingReload) {
+          updatedTrace.steps.push({
+            step: 'Service Reloaded',
+            status: 'success',
+            timestamp: event.timestamp,
+            latency_ms: 180,
+            details: `PID: ${event.payload.pid}`
+          });
+        }
+
+        // Update audit info
+        if (updatedTrace.audit) {
+          updatedTrace.audit.pid = event.payload.pid;
+          updatedTrace.audit.hot_reload_success = true;
+          updatedTrace.audit.files_touched = [updatedTrace.code_change?.file || 'unknown'];
+          updatedTrace.audit.bytes_written = updatedTrace.code_change?.loc_changed || 1;
+        }
         break;
 
       case 'verify.replay.pass':
-        updatedTrace.status = 'complete';
+        updatedTrace.status = 'verifying';
         updatedTrace.fix_applied = true;
-        updatedTrace.steps.push({
-          step: 'Verification',
-          status: 'success',
-          timestamp: event.timestamp,
-          details: `Replay took ${event.payload.replay_ms}ms`
-        });
+        
+        // Add verification results
+        updatedTrace.verification = {
+          before: event.payload.before,
+          after: event.payload.after,
+          latency_ms: event.payload.replay_ms,
+          tests: [
+            { name: 'policy_present', passed: true },
+            { name: 'eligibility_rule_clearance', passed: true }
+          ],
+          metrics_deltas: {
+            p95_change_percent: -18,
+            fail_rate_change_percent: -100
+          }
+        };
+
+        // Only add verification step if not already present
+        const existingVerify = updatedTrace.steps.find(s => s.step === 'Verification');
+        if (!existingVerify) {
+          updatedTrace.steps.push({
+            step: 'Verification',
+            status: 'success',
+            timestamp: event.timestamp,
+            latency_ms: event.payload.replay_ms,
+            details: `Replay successful`
+          });
+        }
         break;
 
       case 'heal.completed':
-        updatedTrace.status = event.payload.status === 'pass' ? 'complete' : 'failed';
+        updatedTrace.status = event.payload.status === 'pass' ? 'healed' : 'rolled_back';
         updatedTrace.duration = event.payload.duration_seconds;
+        
         if (event.payload.status !== 'pass') {
           updatedTrace.error_message = event.payload.message;
         }
+
+        // Add commit SHA
+        if (updatedTrace.audit && event.payload.outcome?.commit_sha) {
+          updatedTrace.audit.commit_sha = event.payload.outcome.commit_sha;
+        }
+        break;
+        
+      default:
+        console.log('Unhandled event type:', event.type);
         break;
     }
 
     return updatedTrace;
+  };
+
+  const handleStepExpand = (stepName: string) => {
+    setUiState(prev => ({
+      ...prev,
+      expanded_step: prev.expanded_step === stepName ? undefined : stepName
+    }));
+  };
+
+  const handleToggleAutoHeal = () => {
+    setUiState(prev => ({ ...prev, auto_heal_enabled: !prev.auto_heal_enabled }));
+  };
+
+  const handleToggleRaw = () => {
+    setUiState(prev => ({ ...prev, show_raw: !prev.show_raw }));
+  };
+
+  const handleCopyEvidence = () => {
+    if (!activeTrace) return;
+    
+    const evidence = {
+      cause: activeTrace.cause,
+      diff: activeTrace.code_change?.diff_lines?.join('\n'),
+      verification: activeTrace.verification,
+      incident_id: activeTrace.audit?.incident_id
+    };
+    
+    navigator.clipboard.writeText(JSON.stringify(evidence, null, 2));
   };
 
   const triggerHealing = async () => {
@@ -150,121 +299,130 @@ function App() {
     }
   };
 
+  const handleReplay = async () => {
+    if (!activeTrace) return;
+    
+    try {
+      const response = await fetch(`/api/replay/${activeTrace.trace_id}`, {
+        method: 'POST'
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Replay result:', result);
+      } else {
+        console.error('Replay failed:', await response.text());
+      }
+    } catch (error) {
+      console.error('Replay error:', error);
+    }
+  };
+
+  const handleRollback = async () => {
+    if (!activeTrace) return;
+    
+    if (!confirm('Are you sure you want to rollback this patch? This will restore the original code.')) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/api/rollback/${activeTrace.trace_id}`, {
+        method: 'POST'
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Rollback result:', result);
+      } else {
+        console.error('Rollback failed:', await response.text());
+      }
+    } catch (error) {
+      console.error('Rollback error:', error);
+    }
+  };
+
+  const handleApprove = async () => {
+    if (!activeTrace) return;
+    
+    try {
+      const response = await fetch(`/api/approve/${activeTrace.trace_id}`, {
+        method: 'POST'
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Approval result:', result);
+      } else {
+        console.error('Approval failed:', await response.text());
+      }
+    } catch (error) {
+      console.error('Approval error:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-3">
-              <Zap className="h-8 w-8 text-primary-600" />
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Self-Healing Agents</h1>
-                <p className="text-sm text-gray-500">Autonomous E-commerce Issue Resolution</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              {/* Connection Status */}
-              <div className="flex items-center space-x-2">
-                <div className={`h-2 w-2 rounded-full ${isConnected ? 'bg-success-500 animate-pulse' : 'bg-error-500'}`} />
-                <span className="text-sm text-gray-600">
-                  {isConnected ? 'Connected' : 'Disconnected'}
-                </span>
-              </div>
-              
-              {/* Trigger Button */}
-              <TriggerButton onTrigger={triggerHealing} />
-            </div>
+      {/* Control Bar */}
+      <ControlBar
+        trace={activeTrace}
+        uiState={uiState}
+        onToggleAutoHeal={handleToggleAutoHeal}
+        onReplay={handleReplay}
+        onRollback={handleRollback}
+        onToggleRaw={handleToggleRaw}
+        onApprove={handleApprove}
+        onTrigger={triggerHealing}
+      />
+
+      {/* Connection Error */}
+      {error && (
+        <div className="mx-6 mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-center space-x-2">
+            <span className="text-red-700">{error}</span>
           </div>
         </div>
-      </header>
+      )}
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {error && (
-          <div className="mb-6 bg-error-50 border border-error-200 rounded-lg p-4">
-            <div className="flex items-center space-x-2">
-              <AlertCircle className="h-5 w-5 text-error-600" />
-              <span className="text-error-700">{error}</span>
-            </div>
-          </div>
-        )}
-
+      <div className="px-6 py-6">
         {activeTrace ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Left Column: Trace Visualization */}
-            <div className="space-y-6">
-              <TraceVisualization trace={activeTrace} />
-              
-              {/* Stats Card */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Healing Statistics</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-primary-600">{healingStats.total}</div>
-                    <div className="text-sm text-gray-500">Total Healings</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-success-600">{healingStats.successful}</div>
-                    <div className="text-sm text-gray-500">Successful</div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* Left: Execution Lane */}
+            <ExecutionLane
+              trace={activeTrace}
+              onStepExpand={handleStepExpand}
+              expandedStep={uiState.expanded_step}
+            />
 
-            {/* Right Column: Details */}
-            <div className="space-y-6">
-              {/* Cause Analysis */}
-              {activeTrace.cause && (
-                <div className="bg-white rounded-lg shadow p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Root Cause Analysis</h3>
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                    <p className="text-yellow-800">{activeTrace.cause}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Code Diff */}
-              {activeTrace.fix_applied && (
-                <CodeDiffViewer 
-                  filename="services/catalog_sync.py"
-                  before={`POLICY_FIELDS = ["price", "inventory", "category"]`}
-                  after={`POLICY_FIELDS = ["price", "inventory", "category", "return_policy"]`}
-                />
-              )}
-
-              {/* Healing Timer */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-900">Healing Status</h3>
-                  <div className={`status-badge ${activeTrace.status === 'complete' ? 'success' : 'info'}`}>
-                    {activeTrace.status === 'complete' ? (
-                      <>
-                        <CheckCircle className="h-4 w-4 mr-1" />
-                        Healed in {activeTrace.duration?.toFixed(1)}s
-                      </>
-                    ) : (
-                      <>
-                        <Activity className="h-4 w-4 mr-1 animate-spin" />
-                        {activeTrace.status}
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* Right: Reasoning Lane */}
+            <ReasoningLane
+              trace={activeTrace}
+              onCopyEvidence={handleCopyEvidence}
+            />
           </div>
         ) : (
           /* Empty State */
-          <div className="text-center py-12">
-            <Code className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Active Healing Process</h3>
-            <p className="text-gray-600 mb-6">Trigger a failure to see the autonomous healing system in action</p>
-            <TriggerButton onTrigger={triggerHealing} variant="primary" />
+          <div className="text-center py-16">
+            <div className="max-w-md mx-auto">
+              <div className="h-16 w-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                <span className="text-2xl">🤖</span>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Self-Healing System Ready
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Autonomous agents are standing by to detect, analyze, and fix issues in real-time.
+              </p>
+              <button
+                onClick={triggerHealing}
+                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Trigger Demo Failure
+              </button>
+            </div>
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }

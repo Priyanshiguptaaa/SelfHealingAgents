@@ -1,0 +1,10 @@
+chmod +x run.sh
+cd backend && pip install pydantic-settings==2.1.0
+curl http://localhost:8000/health
+python main.py
+python3 main.py
+cd /Users/priyanshigupta/Hackathons/SelfHealingAgents/backend && pip install pydantic-settings==2.1.0
+pip install -r requirements.txt
+cd /Users/priyanshigupta/Hackathons/SelfHealingAgents/backend
+source ../.venv/bin/activate
+pip install pydantic-settings

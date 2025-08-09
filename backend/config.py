@@ -1,12 +1,12 @@
-import os
 from typing import List
 from pydantic_settings import BaseSettings
 
+
 class Settings(BaseSettings):
-    # Database - Using SQLite for simplicity
+    # Database - Using SQLite for simplicity in demo
     database_url: str = "sqlite:///./selfheal.db"
     
-    # Use in-memory event bus instead of Redis
+    # Use in-memory event bus instead of Redis for demo
     use_redis: bool = False
     redis_url: str = "redis://localhost:6379"
     
@@ -17,7 +17,10 @@ class Settings(BaseSettings):
     # App Settings
     environment: str = "development"
     secret_key: str = "your-secret-key-here-change-in-production"
-    cors_origins: List[str] = ["http://localhost:5173", "http://localhost:3000"]
+    cors_origins: List[str] = [
+        "http://localhost:5173", 
+        "http://localhost:3000"
+    ]
     
     # Healing Settings
     max_patch_size_lines: int = 30
@@ -36,5 +39,6 @@ class Settings(BaseSettings):
     
     class Config:
         env_file = ".env"
+
 
 settings = Settings() 

@@ -3,7 +3,6 @@ import json
 import uuid
 from datetime import datetime
 from contextlib import asynccontextmanager
-from typing import Dict, Any, List
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,11 +14,13 @@ from models.events import Event, EventType
 from services.event_bus import event_bus
 from services.orchestrator import orchestrator
 
+
 # Request/Response Models
 class TriggerFailureRequest(BaseModel):
     sku: str = "SKU-123"
     order_id: str = "8734"
     endpoint: str = "CheckReturnEligibility"
+
 
 class HealthResponse(BaseModel):
     status: str
@@ -254,6 +255,108 @@ class CatalogSync:
         "content": sample_code,
         "issue": "POLICY_FIELDS is missing 'return_policy' field"
     }
+
+@app.post("/api/replay/{trace_id}")
+async def replay_request(trace_id: str):
+    """Replay the original failing request for a trace"""
+    try:
+        # Get the trace events
+        events = await event_bus.get_events_for_trace(trace_id)
+        if not events:
+            raise HTTPException(status_code=404, detail="Trace not found")
+        
+        # Find the original trace step
+        trace_start_event = next((e for e in events if e.type == EventType.TRACE_START), None)
+        if not trace_start_event:
+            raise HTTPException(status_code=400, detail="No trace start found")
+        
+        # Simulate replay
+        from services.verifier import verifier
+        from services.orchestrator import orchestrator
+        
+        # Create a mock trace step for verification
+        trace_step = orchestrator._create_trace_step_from_event(trace_start_event, trace_id)
+        
+        # Run verification
+        outcome = await verifier.verify_fix(trace_step, trace_id)
+        
+        return {
+            "trace_id": trace_id,
+            "status": "success" if outcome else "failed",
+            "outcome": outcome.dict() if outcome else None
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/rollback/{trace_id}")
+async def rollback_patch(trace_id: str):
+    """Rollback a previously applied patch"""
+    try:
+        from services.patch_applier import patch_applier
+        
+        # Attempt rollback
+        success = await patch_applier.rollback_patch("services/catalog_sync.py", trace_id)
+        
+        if success:
+            # Publish rollback event
+            await event_bus.publish(Event(
+                type=EventType.HEAL_COMPLETED,
+                key=trace_id,
+                payload={
+                    "status": "rolled_back",
+                    "message": "Patch successfully rolled back",
+                    "duration_seconds": 1.2
+                },
+                ts=datetime.now(),
+                trace_id=trace_id,
+                ui_hint="rollback_complete"
+            ))
+            
+            return {
+                "trace_id": trace_id,
+                "status": "success",
+                "message": "Patch rolled back successfully"
+            }
+        else:
+            raise HTTPException(status_code=400, detail="Rollback failed")
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/approve/{trace_id}")
+async def approve_patch(trace_id: str):
+    """Manually approve a patch when auto-heal is disabled"""
+    try:
+        # Get the trace events to find the pending patch
+        events = await event_bus.get_events_for_trace(trace_id)
+        rca_event = next((e for e in events if e.type == EventType.RCA_READY), None)
+        
+        if not rca_event:
+            raise HTTPException(status_code=404, detail="No pending patch found")
+        
+        # Publish approval event to continue the healing process
+        await event_bus.publish(Event(
+            type=EventType.MORPH_APPLY_REQUESTED,
+            key=trace_id,
+            payload={
+                "file": "services/catalog_sync.py",
+                "loc_estimate": 1,
+                "approved_manually": True
+            },
+            ts=datetime.now(),
+            trace_id=trace_id,
+            ui_hint="manual_approval"
+        ))
+        
+        return {
+            "trace_id": trace_id,
+            "status": "approved",
+            "message": "Patch approved, continuing healing process"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn
