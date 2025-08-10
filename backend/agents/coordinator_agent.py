@@ -31,6 +31,9 @@ class CoordinatorAgent:
         self.running = True
         print("🎯 Coordinator Agent started - managing healing workflow")
         
+        # Start the RCA agent to monitor for events
+        await self.healing_agents["rca"].start()
+        
         # Subscribe to failure events
         asyncio.create_task(self._monitor_failures())
     
@@ -56,28 +59,42 @@ class CoordinatorAgent:
         trace_id = failure_event.trace_id
         print(f"🎯 Coordinating healing for trace {trace_id}")
         
+        # Create trace step from failure event for verification
+        trace_step = self._create_trace_step(failure_event)
+        
         # Track healing progress
         self.active_healings[trace_id] = {
             "start_time": datetime.now(),
             "status": "analyzing",
             "agents_involved": [],
-            "current_step": "rca"
+            "current_step": "waiting_for_rca"
         }
         
         try:
-            # Step 1: RCA Agent analyzes the failure
-            print(f"🎯 Step 1: Activating RCA Agent for {trace_id}")
+            # Step 1: Wait for RCA Agent to automatically analyze the failure
+            # (RCA agent now subscribes to RETURN_API_FAILURE events automatically)
+            print(f"🎯 Step 1: Waiting for RCA Agent to analyze {trace_id}")
             self.active_healings[trace_id]["agents_involved"].append("rca")
             
-            # Create trace step from failure event
-            trace_step = self._create_trace_step(failure_event)
-            
-            # RCA Agent analyzes the failure
-            plan = await rca_agent.analyze_failure(trace_step, trace_id)
-            
-            if not plan:
-                await self._complete_healing(trace_id, "failed", "RCA analysis failed")
+            # Wait for RCA_READY event from the RCA agent
+            async for event in event_bus.subscribe([EventType.RCA_READY]):
+                if event.trace_id == trace_id:
+                    print(f"🎯 RCA analysis received for {trace_id}")
+                    plan_data = event.payload
+                    break
+            else:
+                await self._complete_healing(trace_id, "failed", "RCA analysis timeout")
                 return
+            
+            # Create RCAPlan from the event payload
+            from models.events import RCAPlan
+            plan = RCAPlan(
+                playbook=plan_data.get("playbook", "SchemaMismatch"),
+                cause=plan_data.get("cause", "Unknown failure"),
+                patch_spec=plan_data.get("patch_spec", {}),
+                risk_score=plan_data.get("risk_score", 0.5),
+                confidence=plan_data.get("confidence", 0.75)
+            )
             
             # Step 2: Patch Generator creates the fix
             print(f"🎯 Step 2: Activating Patch Generator for {trace_id}")
@@ -94,12 +111,10 @@ class CoordinatorAgent:
                 await self._complete_healing(trace_id, "failed", "Patch generation failed")
                 return
             
-            # Step 3: Guardrails validate the patch
+            # Step 3: Guardrails validation
             print(f"🎯 Step 3: Activating Guardrails for {trace_id}")
-            self.active_healings[trace_id]["current_step"] = "validating"
-            self.active_healings[trace_id]["agents_involved"].append("guardrails")
-            
-            is_safe = await guardrails.validate_patch(machine_diff, trace_id)
+            guardrail_checks = await guardrails.validate_patch(machine_diff)
+            is_safe = guardrails.is_patch_safe(guardrail_checks)
             
             if not is_safe:
                 await self._complete_healing(trace_id, "failed", "Patch failed safety checks")

@@ -10,6 +10,7 @@ class EventType(str, Enum):
     MORPH_APPLY_REQUESTED = "morph.apply.requested"
     MORPH_APPLY_SUCCEEDED = "morph.apply.succeeded"
     MORPH_APPLY_FAILED = "morph.apply.failed"
+    PATCH_LOG = "patch.log"
     RELOAD_DONE = "reload.done"
     VERIFY_REPLAY_PASS = "verify.replay.pass"
     VERIFY_REPLAY_FAIL = "verify.replay.fail"

@@ -10,6 +10,9 @@ class Settings(BaseSettings):
     use_redis: bool = False
     redis_url: str = "redis://localhost:6379"
     
+    # API Keys - Set these in environment variables or .env file
+    morph_api_key: str = ""
+    anthropic_api_key: str = ""
     
     # App Settings
     environment: str = "development"
@@ -36,6 +39,7 @@ class Settings(BaseSettings):
     
     class Config:
         env_file = ".env"
+        env_prefix = ""  # No prefix for environment variables
 
 
 settings = Settings() 
