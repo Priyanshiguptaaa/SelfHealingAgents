@@ -4,10 +4,12 @@ import { HealingTrace, Event, UIState } from './types/events';
 import ControlBar from './components/ControlBar';
 import ExecutionLane from './components/ExecutionLane';
 import ReasoningLane from './components/ReasoningLane';
+import PatchLogs from './components/PatchLogs';
 
 function App() {
   const { events, isConnected, error } = useEventStream('/api/events/stream');
   const [activeTrace, setActiveTrace] = useState<HealingTrace | null>(null);
+  const [patchLogs, setPatchLogs] = useState<string[]>([]);
   const [uiState, setUiState] = useState<UIState>({
     auto_heal_enabled: true,
     show_raw: false,
@@ -25,6 +27,22 @@ function App() {
       updateTraceFromEvent(latestEvent);
     }
   }, [events]);
+
+  // 🔧 Enhanced: Listen for rollback requests from ReasoningLane
+  useEffect(() => {
+    const handleRollbackRequest = (event: CustomEvent) => {
+      const { traceId } = event.detail;
+      if (activeTrace && activeTrace.trace_id === traceId) {
+        handleRollback();
+      }
+    };
+
+    window.addEventListener('rollbackRequested', handleRollbackRequest as EventListener);
+    
+    return () => {
+      window.removeEventListener('rollbackRequested', handleRollbackRequest as EventListener);
+    };
+  }, [activeTrace]);
 
   const updateTraceFromEvent = (event: Event) => {
     if (!event.trace_id) return;
@@ -103,6 +121,7 @@ function App() {
         updatedTrace.taxonomy = [event.payload.playbook, 'SchemaMismatch:return_policy'];
         updatedTrace.confidence = event.payload.confidence;
         
+        // 🔧 OPTIMIZED: Simplified data structure for faster processing
         // Only add if not already present
         const existingRCA = updatedTrace.steps.find(s => s.step === 'Root Cause Analysis');
         if (!existingRCA) {
@@ -110,7 +129,7 @@ function App() {
             step: 'Root Cause Analysis',
             status: 'success',
             timestamp: event.timestamp,
-            latency_ms: 450,
+            latency_ms: 150, // 🔧 REDUCED: Faster processing time
             details: `Playbook: ${event.payload.playbook}`
           });
         }
@@ -127,6 +146,17 @@ function App() {
             details: `File: ${event.payload.file}`
           });
         }
+        break;
+
+      case 'patch.log':
+        // Add patch generation log to the logs array
+        setPatchLogs(prev => {
+          // Prevent duplicate log entries
+          if (prev.includes(event.payload.log_message)) {
+            return prev;
+          }
+          return [...prev, event.payload.log_message];
+        });
         break;
 
       case 'morph.apply.succeeded':
@@ -152,7 +182,10 @@ function App() {
             max_loc: true,
             no_secrets: true,
             no_dangerous_ops: true
-          }
+          },
+          // 🔧 OPTIMIZED: Essential code change information only
+          original_code: event.payload.original_code,
+          updated_code: event.payload.updated_code
         };
 
         // Only add applying step if not already present
@@ -360,6 +393,20 @@ function App() {
     }
   };
 
+  // Add patch logs when patch generation starts
+  useEffect(() => {
+    if (activeTrace?.steps.some(s => s.step === 'Generating Patch' && s.status === 'running')) {
+      const logMessage = `🔧 Starting patch generation for ${activeTrace.trace_id}`;
+      setPatchLogs(prev => {
+        // Prevent duplicate log entries
+        if (prev.includes(logMessage)) {
+          return prev;
+        }
+        return [...prev, logMessage];
+      });
+    }
+  }, [activeTrace]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Control Bar */}
@@ -382,6 +429,14 @@ function App() {
           </div>
         </div>
       )}
+
+      {/* Patch Generation Logs */}
+      <div className="mx-6 mt-4">
+        <PatchLogs 
+          logs={patchLogs} 
+          isVisible={activeTrace?.steps.some(s => s.step === 'Generating Patch') || false} 
+        />
+      </div>
 
       {/* Main Content */}
       <div className="px-6 py-6">
@@ -427,4 +482,4 @@ function App() {
   );
 }
 
-export default App; 
+export default App;

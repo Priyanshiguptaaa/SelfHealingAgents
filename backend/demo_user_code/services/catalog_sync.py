@@ -2,3 +2,5 @@
 """Catalog synchronization service"""
         """Sync a single product from catalog"""
         """Fetch product data from external catalog API"""
+        """Apply return policy to product data"""
+        """Add return policy to product data"""

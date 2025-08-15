@@ -44,23 +44,26 @@ class CoordinatorAgent:
     
     async def _monitor_failures(self):
         """Monitor for failure events and coordinate healing response"""
-        failure_types = [EventType.RETURN_API_FAILURE, EventType.SCHEMA_MISMATCH]
+        # Monitor for both failure events and RCA completion events
+        # This allows the coordinator to continue healing after RCA analysis
+        event_types = [EventType.SCHEMA_MISMATCH, EventType.RCA_READY]
         
-        async for event in event_bus.subscribe(failure_types):
+        async for event in event_bus.subscribe(event_types):
             if not self.running:
                 break
                 
             if event.trace_id and event.trace_id not in self.active_healings:
-                # New failure detected - coordinate healing response
-                await self._coordinate_healing(event)
+                if event.type == EventType.SCHEMA_MISMATCH:
+                    # New failure detected - coordinate healing response
+                    await self._coordinate_healing(event)
+                elif event.type == EventType.RCA_READY:
+                    # RCA analysis completed - continue healing process
+                    await self._continue_healing_after_rca(event)
     
     async def _coordinate_healing(self, failure_event: Event):
         """Coordinate the healing workflow across all agents"""
         trace_id = failure_event.trace_id
         print(f"🎯 Coordinating healing for trace {trace_id}")
-        
-        # Create trace step from failure event for verification
-        trace_step = self._create_trace_step(failure_event)
         
         # Track healing progress
         self.active_healings[trace_id] = {
@@ -83,9 +86,44 @@ class CoordinatorAgent:
                     plan_data = event.payload
                     break
             else:
-                await self._complete_healing(trace_id, "failed", "RCA analysis timeout")
+                await self._complete_healing(trace_id, "failed", 
+                                           "RCA analysis timeout")
                 return
             
+            # Continue with the healing process
+            await self._execute_healing_steps(trace_id, plan_data)
+            
+        except Exception as e:
+            print(f"🎯 Error in healing coordination: {e}")
+            await self._complete_healing(trace_id, "failed", 
+                                       f"Coordination error: {str(e)}")
+
+    async def _continue_healing_after_rca(self, rca_event: Event):
+        """Continue healing process after RCA analysis completes"""
+        trace_id = rca_event.trace_id
+        print(f"🎯 Continuing healing after RCA analysis for trace {trace_id}")
+        
+        # Check if we already have an active healing for this trace
+        if trace_id in self.active_healings:
+            print(f"🎯 Trace {trace_id} already has active healing, updating status")
+            self.active_healings[trace_id]["current_step"] = "rca_complete"
+        else:
+            # Start new healing process for this trace
+            print(f"🎯 Starting new healing process for trace {trace_id}")
+            self.active_healings[trace_id] = {
+                "start_time": datetime.now(),
+                "status": "analyzing",
+                "agents_involved": ["rca"],
+                "current_step": "rca_complete"
+            }
+        
+        # Execute the healing steps with the RCA plan
+        plan_data = rca_event.payload
+        await self._execute_healing_steps(trace_id, plan_data)
+
+    async def _execute_healing_steps(self, trace_id: str, plan_data: Dict[str, Any]):
+        """Execute the healing workflow steps"""
+        try:
             # Create RCAPlan from the event payload
             from models.events import RCAPlan
             plan = RCAPlan(
@@ -102,7 +140,9 @@ class CoordinatorAgent:
             self.active_healings[trace_id]["agents_involved"].append("patch_generator")
             
             # Load original code
-            original_code = await self._load_original_code(plan.patch_spec.get("file"))
+            original_code = await self._load_original_code(
+                plan.patch_spec.get("file")
+            )
             
             # Generate patch
             machine_diff = await patch_generator.generate_patch(plan, original_code, trace_id)
@@ -136,18 +176,19 @@ class CoordinatorAgent:
             self.active_healings[trace_id]["current_step"] = "verifying"
             self.active_healings[trace_id]["agents_involved"].append("verifier")
             
-            outcome = await verifier.verify_fix(trace_step, trace_id)
+            verification_result = await verifier.verify_fix(trace_id)
             
-            if outcome:
-                await self._complete_healing(trace_id, "success", "Healing completed successfully")
+            if verification_result.get("success"):
+                print(f"🎯 Healing completed successfully for {trace_id}")
+                await self._complete_healing(trace_id, "success", 
+                                           "All healing steps completed successfully")
             else:
-                # Rollback and fail
-                await patch_applier.rollback_patch(machine_diff.file, trace_id)
-                await self._complete_healing(trace_id, "failed", "Verification failed - rolled back")
+                print(f"🎯 Healing verification failed for {trace_id}")
+                await self._complete_healing(trace_id, "failed", "Verification failed")
                 
         except Exception as e:
-            print(f"🎯 Coordination error for {trace_id}: {e}")
-            await self._complete_healing(trace_id, "failed", f"Coordination error: {str(e)}")
+            print(f"🎯 Error in healing execution: {e}")
+            await self._complete_healing(trace_id, "failed", f"Execution error: {str(e)}")
     
     def _create_trace_step(self, failure_event: Event):
         """Create trace step from failure event"""

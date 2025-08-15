@@ -15,8 +15,8 @@ class PatchGenerator:
         self.client = httpx.AsyncClient()
 
     async def generate_patch(self, plan: RCAPlan, original_code: str,
-                            trace_id: str) -> Optional[MachineDiff]:
-        """Generate machine diff using Morph Apply API"""
+                           trace_id: str) -> Optional[MachineDiff]:
+        """Generate a patch based on the RCA plan"""
 
         print(f"\n🔧 PATCH GENERATOR: Starting patch generation for trace {trace_id}")
         print(f"🔧 PATCH GENERATOR: File to modify: {plan.patch_spec.get('file', 'unknown')}")
@@ -24,8 +24,14 @@ class PatchGenerator:
         print(f"🔧 PATCH GENERATOR: Risk score: {plan.risk_score}")
 
         # Publish log to frontend
-        await self._publish_patch_log(trace_id, f"🔧 Starting patch generation for {plan.patch_spec.get('file', 'unknown')}")
-        await self._publish_patch_log(trace_id, f"🔧 Change type: {plan.patch_spec.get('type', 'unknown')}")
+        await self._publish_patch_log(
+            trace_id, 
+            f"🔧 Starting patch generation for {plan.patch_spec.get('file', 'unknown')}"
+        )
+        await self._publish_patch_log(
+            trace_id, 
+            f"🔧 Change type: {plan.patch_spec.get('type', 'unknown')}"
+        )
         await self._publish_patch_log(trace_id, f"🔧 Risk score: {plan.risk_score}")
 
         # Publish generation start event
@@ -44,7 +50,7 @@ class PatchGenerator:
 
         try:
             # Generate update snippet based on patch spec
-            print(f"🔧 PATCH GENERATOR: Creating update snippet...")
+            print("🔧 PATCH GENERATOR: Creating update snippet...")
             await self._publish_patch_log(trace_id, "🔧 Creating update snippet...")
             update_snippet = self._create_update_snippet(
                 plan.patch_spec, original_code
@@ -53,14 +59,14 @@ class PatchGenerator:
             await self._publish_patch_log(trace_id, f"🔧 Update snippet: {update_snippet}")
 
             # Call Morph API
-            print(f"🔧 PATCH GENERATOR: Calling Morph API...")
+            print("🔧 PATCH GENERATOR: Calling Morph API...")
             await self._publish_patch_log(trace_id, "🔧 Calling Morph API...")
             raw_response = await self._call_morph_apply(
                 original_code, update_snippet, trace_id
             )
 
             if not raw_response:
-                print(f"🔧 PATCH GENERATOR: Morph API call failed - no response")
+                print("🔧 PATCH GENERATOR: Morph API call failed - no response")
                 await self._publish_failure_event(
                     trace_id, "Morph API call failed"
                 )
@@ -70,21 +76,21 @@ class PatchGenerator:
             print(f"🔧 PATCH GENERATOR: Raw response preview: {raw_response[:200]}...")
 
             # Extract the actual updated code from Morph response
-            print(f"🔧 PATCH GENERATOR: Extracting updated code from response...")
+            print("🔧 PATCH GENERATOR: Extracting updated code from response...")
             updated_code = self._extract_updated_code_from_response(raw_response, original_code)
             print(f"🔧 PATCH GENERATOR: Updated code extracted, length: {len(updated_code)}")
             
             # Check if code was actually modified
             if updated_code == original_code:
-                print(f"⚠️ PATCH GENERATOR: WARNING - No changes detected in Morph response!")
+                print("⚠️ PATCH GENERATOR: WARNING - No changes detected in Morph response!")
                 print(f"🔧 PATCH GENERATOR: Original code length: {len(original_code)}")
                 print(f"🔧 PATCH GENERATOR: Updated code length: {len(updated_code)}")
             else:
-                print(f"✅ PATCH GENERATOR: Code successfully modified by Morph API!")
-                print(f"🔧 PATCH GENERATOR: Changes detected in response")
+                print("✅ PATCH GENERATOR: Code successfully modified by Morph API!")
+                print("🔧 PATCH GENERATOR: Changes detected in response")
             
             # Create diff
-            print(f"🔧 PATCH GENERATOR: Creating diff between original and updated code...")
+            print("🔧 PATCH GENERATOR: Creating diff between original and updated code...")
             diff_lines = list(difflib.unified_diff(
                 original_code.splitlines(keepends=True),
                 updated_code.splitlines(keepends=True),
@@ -117,142 +123,88 @@ class PatchGenerator:
                 loc_changed=self._count_changed_lines(diff_lines)
             )
 
-            # Extract reasoning from Morph API response if available
-            reasoning = {}
-            if "<reasoning>" in updated_code and "</reasoning>" in updated_code:
-                try:
-                    import re
-                    reasoning_match = re.search(
-                        r'<reasoning>(.*?)</reasoning>', 
-                        updated_code, re.DOTALL
-                    )
-                    if reasoning_match:
-                        reasoning["morph_reasoning"] = (
-                            reasoning_match.group(1).strip()
-                        )
-                        # 🔧 PRINT MORPH REASONING
-                        print("\n🧠 MORPH REASONING:")
-                        print(reasoning["morph_reasoning"])
-                        print("-" * 40)
-                except Exception as e:
-                    print(f"🔧 Could not extract reasoning: {e}")
-            else:
-                print("\n🔧 No reasoning found in Morph response")
-                if len(updated_code) > 200:
-                    print("Raw response preview:", updated_code[:200] + "...")
-                else:
-                    print("Raw response preview:", updated_code)
-
-            # 🔧 Enhanced: Extract technical analysis and change summary
-            technical_analysis = None
-            change_summary = None
+            # 🔧 OPTIMIZED: Remove verbose AI recommendations for speed
+            # Only extract essential information needed for the frontend
             
-            if ("<technical_analysis>" in updated_code and 
-                "</technical_analysis>" in updated_code):
-                try:
-                    import re
-                    tech_match = re.search(
-                        r'<technical_analysis>(.*?)</technical_analysis>', 
-                        updated_code, re.DOTALL
-                    )
-                    if tech_match:
-                        technical_analysis = tech_match.group(1).strip()
-                        print("\n🔧 MORPH TECHNICAL ANALYSIS:")
-                        print(technical_analysis)
-                        print("-" * 40)
-                except Exception as e:
-                    print(f"🔧 Could not extract technical analysis: {e}")
-
-            if ("<change_summary>" in updated_code and 
-                "</change_summary>" in updated_code):
-                try:
-                    import re
-                    summary_match = re.search(
-                        r'<change_summary>(.*?)</change_summary>', 
-                        updated_code, re.DOTALL
-                    )
-                    if summary_match:
-                        change_summary = summary_match.group(1).strip()
-                        print("\n🔧 MORPH CHANGE SUMMARY:")
-                        print(change_summary)
-                        print("-" * 40)
-                except Exception as e:
-                    print(f"🔧 Could not extract change summary: {e}")
-            
-            # Publish success event
+            # Publish success event with essential information only
             await event_bus.publish(Event(
                 type=EventType.MORPH_APPLY_SUCCEEDED,
                 key=trace_id,
                 payload={
-                    "file": machine_diff.file,
+                    "file": plan.patch_spec.get("file", "unknown"),
                     "loc_changed": machine_diff.loc_changed,
-                    "diff_preview": diff_lines[:10] if diff_lines else [],
-                    "reasoning": reasoning,
-                    # 🔧 Enhanced: Pass detailed Morph API information
-                    "technical_analysis": technical_analysis,
-                    "change_summary": change_summary,
+                    "diff_preview": diff_lines[-10:] if len(diff_lines) > 10 else diff_lines,
                     "original_code": original_code,
-                    "updated_code": updated_code,
-                    "diff_lines": diff_lines
+                    "updated_code": updated_code
                 },
                 ts=datetime.now(),
                 trace_id=trace_id,
                 ui_hint="patch_generated"
             ))
 
-            print(f"✅ PATCH GENERATOR: Patch generation completed successfully!")
-            print(f"🔧 PATCH GENERATOR: File: {machine_diff.file}")
-            print(f"🔧 PATCH GENERATOR: Lines changed: {machine_diff.loc_changed}")
-            print(f"🔧 PATCH GENERATOR: Diff preview: {diff_lines[:5] if diff_lines else 'No diff lines'}")
-
-            # Publish completion log
-            await self._publish_patch_log(trace_id, f"✅ Patch generation completed successfully!")
-            await self._publish_patch_log(trace_id, f"🔧 File: {machine_diff.file}")
-            await self._publish_patch_log(trace_id, f"🔧 Lines changed: {machine_diff.loc_changed}")
-
             return machine_diff
 
         except Exception as e:
-            print(f"❌ PATCH GENERATOR: Patch generation failed with error: {e}")
-            print(f"🔧 PATCH GENERATOR: Error type: {type(e).__name__}")
-            
-            # Publish failure log
-            await self._publish_patch_log(trace_id, f"❌ Patch generation failed: {e}")
-            
-            await self._publish_failure_event(trace_id, str(e))
+            print(f"🔧 PATCH GENERATOR: Error during patch generation: {e}")
+            await self._publish_failure_event(trace_id, f"Patch generation error: {str(e)}")
             return None
 
     def _create_update_snippet(self, patch_spec: Dict[str, Any], original_code: str) -> str:
-        """Create natural language update instruction for Morph API"""
+        """Create simple update instruction for Morph API - focused on quick fixes"""
 
+        # 🔧 OPTIMIZED: Simple, direct instructions for faster processing
         change_type = patch_spec.get("type", "unknown")
+        file_path = patch_spec.get("file", "unknown")
+        change = patch_spec.get("change", "")
+        
+        # Create a simple, direct instruction
+        simple_instruction = f"""
+Fix this issue in {file_path}:
+- Type: {change_type}
+- Change needed: {change}
 
+Make the minimal necessary changes to fix the issue.
+"""
+        
+        return simple_instruction.strip()
+
+    def _get_detailed_change_instruction(self, patch_spec: Dict[str, Any], change_type: str) -> str:
+        """Get detailed change instruction based on change type"""
+        
         if change_type == "add_field":
             field_to_add = patch_spec.get("change", "").replace("+ ", "").strip("'\"")
-            return f"Add the field '{field_to_add}' to the POLICY_FIELDS list"
-
+            return f"Add the field '{field_to_add}' to the POLICY_FIELDS list in the configuration"
+        
         elif change_type == "add_default":
             field = patch_spec.get("field", "unknown_field")
-            return f"Add a default value for the '{field}' field when it's missing"
-
+            return f"Add a default value for the '{field}' field when it's missing from the data"
+        
         else:
-            # Generic update
+            # Generic update with full context
             change = patch_spec.get("change", "")
-            return f"Apply this change: {change}"
+            return f"Apply this specific change: {change}"
 
     async def _call_morph_apply(self, original_code: str, update_snippet: str, trace_id: str) -> Optional[str]:
         """Call Morph Apply API to merge the update"""
 
-        print(f"🔧 MORPH API: Starting API call...")
+        print("🔧 MORPH API: Starting API call...")
         print(f"🔧 MORPH API: Original code length: {len(original_code)}")
         print(f"🔧 MORPH API: Update snippet length: {len(update_snippet)}")
         
         # Publish log to frontend
-        await self._publish_patch_log(trace_id, f"🔧 MORPH API: Starting API call...")
-        await self._publish_patch_log(trace_id, f"🔧 MORPH API: Original code length: {len(original_code)}")
-        await self._publish_patch_log(trace_id, f"🔧 MORPH API: Update snippet length: {len(update_snippet)}")
+        await self._publish_patch_log(
+            trace_id, "🔧 MORPH API: Starting API call..."
+        )
+        await self._publish_patch_log(
+            trace_id, 
+            f"🔧 MORPH API: Original code length: {len(original_code)}"
+        )
+        await self._publish_patch_log(
+            trace_id, 
+            f"🔧 MORPH API: Update snippet length: {len(update_snippet)}"
+        )
 
-        print(f"🔧 MORPH API: Config check:")
+        print("🔧 MORPH API: Config check:")
         print(f"🔧 MORPH API: API key present: {bool(settings.morph_api_key)}")
         print(f"🔧 MORPH API: Key length: {len(settings.morph_api_key) if settings.morph_api_key else 0}")
 
@@ -262,26 +214,17 @@ class PatchGenerator:
             return self._simulate_morph_apply(original_code, update_snippet)
 
         try:
-            # Use OpenAI-compatible format as per Morph docs
-            headers = {
-                "Authorization": f"Bearer {settings.morph_api_key}",
-                "Content-Type": "application/json"
-            }
+            # 🔧 OPTIMIZED: Simplified prompt for faster processing
+            prompt = f"""Fix this Python code:
 
-            # Simple, direct instruction for Morph API
-            prompt = f"""You are a Python code modification expert. 
-
-Here is the current Python code:
 {original_code}
 
-I need you to: {update_snippet}
+Issue: {update_snippet}
 
-Please modify the code to implement this change. Return only the modified Python code, no explanations or additional formatting.
+Return ONLY the fixed Python code."""
 
-The modified code should be ready to run and should include the requested change."""
-
-            print(f"🔧 MORPH API: Simple prompt built, length: {len(prompt)}")
-            print(f"🔧 MORPH API: Prompt: {prompt}")
+            print("🔧 MORPH API: Simplified prompt built")
+            print(f"🔧 MORPH API: Prompt preview: {prompt[:100]}...")
 
             payload = {
                 "model": "morph-v3-large",
@@ -290,10 +233,12 @@ The modified code should be ready to run and should include the requested change
                         "role": "user",
                         "content": prompt
                     }
-                ]
+                ],
+                "temperature": 0.1,  # Low temperature for consistent code generation
+                "max_tokens": 1000   # 🔧 REDUCED: Smaller token limit for speed
             }
 
-            print(f"🔧 MORPH API: Sending request to Morph API...")
+            print("🔧 MORPH API: Sending request to Morph API...")
             response = await self.client.post(
                 "https://api.morphllm.com/v1/chat/completions",
                 json=payload,
@@ -307,20 +252,37 @@ The modified code should be ready to run and should include the requested change
             print(f"🔧 MORPH API: Response preview: {response.text[:300]}...")
 
             # Publish response log
-            await self._publish_patch_log(trace_id, f"🔧 MORPH API: Response received - Status: {response.status_code}")
-            await self._publish_patch_log(trace_id, f"🔧 MORPH API: Response length: {len(response.text)}")
+            await self._publish_patch_log(
+                trace_id, 
+                f"🔧 MORPH API: Response received - Status: {response.status_code}"
+            )
+            await self._publish_patch_log(
+                trace_id, 
+                f"🔧 MORPH API: Response length: {len(response.text)}"
+            )
 
             if response.status_code == 200:
                 result = response.json()
                 content = result["choices"][0]["message"]["content"]
                 print(f"🔧 MORPH API: Successfully extracted content, length: {len(content)}")
-                return content
+                
+                # Clean up the response - remove any markdown formatting
+                cleaned_content = self._clean_morph_response(content)
+                print(f"🔧 MORPH API: Cleaned content length: {len(cleaned_content)}")
+                
+                return cleaned_content
             else:
                 print(f"🔧 MORPH API: Error response: {response.status_code} - {response.text}")
+                await self._publish_patch_log(
+                    trace_id, f"❌ MORPH API Error: {response.status_code}"
+                )
                 return None
 
         except Exception as e:
             print(f"🔧 MORPH API: Exception occurred: {e}")
+            await self._publish_patch_log(
+                trace_id, f"❌ MORPH API Exception: {str(e)}"
+            )
             return None
 
     def _simulate_morph_apply(self, original_code: str, update_snippet: str) -> str:
@@ -375,6 +337,31 @@ The modified code should be ready to run and should include the requested change
         else:
             print("✅ EXTRACTOR: Changes detected! Code was modified by Morph API")
             return updated_code
+
+    def _clean_morph_response(self, response: str) -> str:
+        """Clean up Morph API response to extract just the code"""
+        # Remove markdown code blocks
+        if "```python" in response:
+            start = response.find("```python") + 9
+            end = response.find("```", start)
+            if end != -1:
+                return response[start:end].strip()
+        
+        # Remove markdown code blocks without language
+        if "```" in response:
+            start = response.find("```") + 3
+            end = response.find("```", start)
+            if end != -1:
+                return response[start:end].strip()
+        
+        # Remove any leading/trailing whitespace and common prefixes
+        cleaned = response.strip()
+        if cleaned.startswith("Here's the modified code:"):
+            cleaned = cleaned[26:].strip()
+        if cleaned.startswith("Modified code:"):
+            cleaned = cleaned[15:].strip()
+        
+        return cleaned
 
     def _estimate_loc_change(self, patch_spec: Dict[str, Any]) -> int:
         """Estimate lines of code that will change"""

@@ -97,3 +97,595 @@ source .venv/bin/activate && cd backend && python main.py
 cd backend && python main.py
 python3 main.py
 python main.py
+source /Users/priyanshigupta/Hackathons/SelfHealingAgents/.venv/bin/activate
+sleep 5 && curl -X POST http://localhost:8000/api/trigger-failure -H "Content-Type: application/json" -d '{"sku": "SKU-1001", "order_id": "ORD-001"}'
+git stash
+git checkout -b pri
+git stash pop
+git add .
+git status
+git commit -m "changing structire"
+git push
+git push --set-upstream origin pri
+git add .
+git status
+git commit -m "removing API"
+git push --upstream origin pri
+git push
+git push --set-upstream origin pri
+git push --set-upstream origin pri
+ls
+git add .
+git status
+git commit -m "initial base code"
+git push
+python --version
+python
+python3 --version
+virtualenv .venv
+git pull
+git add .
+git status
+git stash
+git pull
+git stash pop
+git status
+git commit -m "commiting flow updates"
+npm install
+git commit -m "feat: Complete self-healing UI implementation with split-view design\
+\
+- Added ExecutionLane component with expandable timeline steps\
+- Added ReasoningLane with RCA, code diff, verification cards  \
+- Added ControlBar with real-time status, timer, and controls\
+- Implemented proper event processing for all healing stages\
+- Added replay, rollback, and manual approval functionality\
+- Fixed event type matching between frontend and backend\
+- Added comprehensive .gitignore for Python and Node.js"
+git push
+git pull
+source /Users/priyanshigupta/Hackathons/SelfHealingAgents/.venv/bin/activate
+pip install -r requirements.txt
+cd backend
+pip install -r requirements.txt
+python3 main.py
+python3 main.py
+source /Users/priyanshigupta/Hackathons/SelfHealingAgents/.venv/bin/activate
+cd frontend
+npm install
+npm run dev
+npm run dev
+cd backend && python -c "from config import settings; print('Anthropic key:', settings.anthropic_api_key[:20] + '...'); print('Morph key:', settings.morph_api_key[:20] + '...')"
+python3 -c "from config import settings; print('Anthropic key:', settings.anthropic_api_key[:20] + '...'); print('Morph key:', settings.morph_api_key[:20] + '...')"
+pip install -r requirements.txt
+python3 -c "from config import settings; print('Anthropic key:', settings.anthropic_api_key[:20] + '...'); print('Morph key:', settings.morph_api_key[:20] + '...')"
+which python3 && python3 --version
+python3 -m pip install -r requirements.txt
+cd .. && python3 -m venv .venv
+source .venv/bin/activate && cd backend && pip install -r requirements.txt
+pip install -r requirements.txt
+python3 -c "from config import settings; print('Anthropic key:', settings.anthropic_api_key[:20] + '...'); print('Morph key:', settings.morph_api_key[:20] + '...')"
+python3 -c "from agents.rca_agent import RCAAgent; from agents.patch_generator import PatchGenerator; print('âƒ¼ƒ¥ All agents imported successfully')"
+python3 -c "from main import app; print('âƒ¼ƒ¥ FastAPI app imported successfully')"
+sleep 3 && curl -s http://localhost:8000/health | head -20
+curl -X POST http://localhost:8000/api/trigger-failure -H "Content-Type: application/json" -d '{"sku": "SKU-1001", "order_id": "8734", "endpoint": "CheckReturnEligibility"}'
+cd ../frontend && npm install
+sleep 5 && curl -s http://localhost:5173 | head -10
+cd ../backend && source ../.venv/bin/activate && python3 -m uvicorn main:app --reload --port 8000 --host 0.0.0.0
+npm run dev
+cd .. && source .venv/bin/activate && cd backend && python3 -m uvicorn main:app --reload --port 8000 --host 0.0.0.0
+sleep 5 && curl -s http://localhost:8000/health
+sleep 3 && curl -s http://localhost:8000/health
+curl -X POST http://localhost:8000/api/trigger-failure -H "Content-Type: application/json" -d '{"sku": "SKU-1001", "order_id": "8734", "endpoint": "CheckReturnEligibility"}'
+curl -s http://localhost:8000/api/active-healings
+cd backend && source ../.venv/bin/activate && python3 -m uvicorn main:app --reload --port 8000 --host 0.0.0.0
+cd /Users/priyanshigupta/Hackathons/SelfHealingAgents && env | grep -i anthropic
+ls -la | grep env
+cd backend && ls -la | grep env
+pwd && find . -name "*.env*" -type f
+echo "# API Keys" > .env && echo "ANTHROPIC_API_KEY=your_anthropic_api_key_here" >> .env && echo "" >> .env && echo "# Other configuration" >> .env && echo "ENVIRONMENT=development" >> .env
+cat .env
+echo "# API Keys" > .env && echo "MORPH_API_KEY=sk-yaFvelkbHggaMtxa41rRlAeDNxLCfiUV4bf6pSUJZn8V2dyJ" >> .env && echo "ANTHROPIC_API_KEY=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" >> .env && echo "" >> .env && echo "# Other configuration" >> .env && echo "ENVIRONMENT=development" >> .env
+cat .env
+cd .. && python3 backend/main.py
+source .venv/bin/activate && cd backend && pip install -r requirements.txt
+python3 -c "from config import settings; print('âƒ¼ƒ¥ Anthropic API Key:', 'SET' if settings.anthropic_api_key else 'âƒ½ƒ¬ NOT SET'); print('âƒ¼ƒ¥ Morph API Key:', 'SET' if settings.morph_api_key else 'âƒ½ƒ¬ NOT SET'); print('ðƒ¿ƒ´ƒ± Anthropic key preview:', settings.anthropic_api_key[:20] + '...' if settings.anthropic_api_key else 'None')"
+cd /Users/priyanshigupta/Hackathons/SelfHealingAgents/backend && ps aux | grep "python3 main.py" | grep -v grep
+python3 main.py
+python3 main.py
+cd .. && source .venv/bin/activate && cd backend && python3 main.py
+python3 main.py
+cat .env
+cd backend && cat .env
+cd /Users/priyanshigupta/Hackathons/SelfHealingAgents/backend && ps aux | grep "python3 main.py" | grep -v grep
+python3 main.py
+cd /Users/priyanshigupta/Hackathons/SelfHealingAgents/backend && sleep 3 && curl -X POST "http://localhost:8000/api/trigger-failure" -H "Content-Type: application/json" -d '{"sku": "SKU-1001", "order_id": "8734", "endpoint": "CheckReturnEligibility"}'
+cd .. && source .venv/bin/activate && cd backend && python3 main.py
+cd /Users/priyanshigupta/Hackathons/SelfHealingAgents/backend && curl -X POST "http://localhost:8000/api/trigger-failure" -H "Content-Type: application/json" -d '{"sku": "SKU-1001", "order_id": "8734", "endpoint": "CheckReturnEligibility"}'
+ps aux | grep "python3 main.py" | grep -v grep
+cd .. && source .venv/bin/activate && cd backend && nohup python3 main.py > app.log 2>&1 &
+sleep 5 && tail -20 app.log
+curl -X POST "http://localhost:8000/api/trigger-failure" -H "Content-Type: application/json" -d '{"sku": "SKU-1001", "order_id": "8734", "endpoint": "CheckReturnEligibility"}'
+tail -30 app.log
+python3 -c "from config import settings; print('Anthropic API Key:', 'SET' if settings.anthropic_api_key else 'NOT SET'); print('Morph API Key:', 'SET' if settings.morph_api_key else 'NOT SET')"
+pkill -f "python3 main.py" && sleep 2
+nohup python3 main.py > app.log 2>&1 &
+sleep 5 && tail -10 app.log
+pkill -f python && sleep 3 && lsof -ti:8000 | xargs kill -9 2>/dev/null || true
+python3 main.py
+sleep 5 && curl -X POST http://localhost:8000/api/trigger-failure
+ps aux | grep python
+nohup python3 main.py > app.log 2>&1 &
+sleep 3 && tail -20 app.log
+curl -X POST http://localhost:8000/api/trigger-failure
+tail -30 app.log
+curl -X POST http://localhost:8000/api/trigger-failure -H "Content-Type: application/json" -d '{"sku": "SKU-1001", "order_id": "8734", "endpoint": "CheckReturnEligibility"}'
+tail -50 app.log
+pkill -f python && sleep 3
+nohup python3 main.py > app.log 2>&1 &
+sleep 5 && curl -X POST http://localhost:8000/api/trigger-failure -H "Content-Type: application/json" -d '{"sku": "SKU-1001", "order_id": "8734", "endpoint": "CheckReturnEligibility"}'
+tail -100 app.log
+ps aux | grep python
+tail -20 app.log
+curl -X POST http://localhost:8000/api/trigger-failure -H "Content-Type: application/json" -d '{"sku": "SKU-1001", "order_id": "8734", "endpoint": "CheckReturnEligibility"}'
+tail -100 app.log
+pkill -f python && sleep 3
+nohup python3 main.py > app.log 2>&1 &
+sleep 5 && curl -X POST http://localhost:8000/api/trigger-failure -H "Content-Type: application/json" -d '{"sku": "SKU-1001", "order_id": "8734", "endpoint": "CheckReturnEligibility"}'
+tail -80 app.log
+cat .env
+pkill -f python && sleep 3
+nohup python3 main.py > app.log 2>&1 &
+sleep 5 && curl -X POST http://localhost:8000/api/trigger-failure -H "Content-Type: application/json" -d '{"sku": "SKU-1001", "order_id": "8734", "endpoint": "CheckReturnEligibility"}'
+tail -100 app.log
+pkill -f python && sleep 3
+nohup python3 main.py > app.log 2>&1 &
+sleep 5 && tail -20 app.log
+nohup python3 main.py > app.log 2>&1 &
+sleep 5 && tail -30 app.log
+sleep 3 && tail -20 app.log
+tail -50 app.log
+tail -100 app.log
+ps aux | grep python
+curl -X POST http://localhost:8000/api/trigger-failure -H "Content-Type: application/json" -d '{"sku": "SKU-1001", "order_id": "8734", "endpoint": "CheckReturnEligibility"}'
+tail -50 app.log
+sleep 5 && tail -100 app.log
+curl -X POST http://localhost:8000/api/trigger-failure -H "Content-Type: application/json" -d '{"sku": "SKU-1002", "order_id": "8735", "endpoint": "CheckReturnEligibility"}'
+tail -100 app.log
+pkill -f python && sleep 3
+nohup python3 main.py > app.log 2>&1 &
+sleep 8 && tail -30 app.log
+sleep 5 && tail -50 app.log
+ps aux | grep "python3 main.py"
+cat app.log
+python3 main.py
+lsof -ti:8000 | xargs kill -9 2>/dev/null || true
+python3 main.py
+cd /Users/priyanshigupta/Hackathons/SelfHealingAgents && ls -la | grep env
+ls -la | grep -E "\.(env|ENV)"
+cd backend && python -c "from config import settings; print('Morph API Key:', 'SET' if settings.morph_api_key else 'NOT SET'); print('Anthropic API Key:', 'SET' if settings.anthropic_api_key else 'NOT SET')"
+python3 -c "from config import settings; print('Morph API Key:', 'SET' if settings.morph_api_key else 'NOT SET'); print('Anthropic API Key:', 'SET' if settings.anthropic_api_key else 'NOT SET')"
+cd .. && source .venv/bin/activate && cd backend && python -c "from config import settings; print('Morph API Key:', 'SET' if settings.morph_api_key else 'NOT SET'); print('Anthropic API Key:', 'SET' if settings.anthropic_api_key else 'NOT SET')"
+cd .. && source .venv/bin/activate && cd backend && python -c "from agents.rca_agent import rca_agent; print('RCA Agent imported successfully')"
+cd .. && source .venv/bin/activate && cd backend && python -c "from agents.patch_generator import patch_generator; print('Patch Generator imported successfully')"
+cd .. && source .venv/bin/activate && cd backend && python -c "from services.event_bus import event_bus; print('Event Bus imported successfully')"
+cd .. && source .venv/bin/activate && cd backend && python -c "\
+import asyncio\
+from agents.rca_agent import rca_agent\
+async def test():\
+    try:\
+        result = await rca_agent._analyze_with_anthropic(None)\
+        print('Anthropic API test result:', result)\
+    except Exception as e:\
+        print('Anthropic API test error:', e)\
+asyncio.run(test())\
+"
+cd .. && source .venv/bin/activate && cd backend && python -c "\
+import asyncio\
+from agents.rca_agent import rca_agent\
+from models.events import TraceStep, FailureDetail\
+from datetime import datetime\
+\
+async def test():\
+    try:\
+        # Create a test TraceStep\
+        test_step = TraceStep(\
+            trace_id='test-123',\
+            step='CheckReturnEligibility',\
+            input={'sku': 'SKU-1001'},\
+            output={},\
+            schema_ok=False,\
+            failure=FailureDetail(\
+                type='SchemaMismatch',\
+                field='return_policy',\
+                message='return_policy field is missing'\
+            ),\
+            latency_ms=100,\
+            timestamp=datetime.now()\
+        )\
+        \
+        result = await rca_agent._analyze_with_anthropic(test_step)\
+        print('Anthropic API test result:', result)\
+    except Exception as e:\
+        print('Anthropic API test error:', e)\
+        import traceback\
+        traceback.print_exc()\
+\
+asyncio.run(test())\
+"
+cd .. && source .venv/bin/activate && cd backend && python -c "\
+import asyncio\
+from agents.patch_generator import patch_generator\
+\
+async def test():\
+    try:\
+        # Test Morph API connection\
+        result = await patch_generator._call_morph_apply('test code', 'test update')\
+        print('Morph API test result:', result)\
+    except Exception as e:\
+        print('Morph API test error:', e)\
+        import traceback\
+        traceback.print_exc()\
+\
+asyncio.run(test())\
+"
+cd .. && source .venv/bin/activate && cd backend && python -c "\
+import asyncio\
+from services.event_bus import event_bus\
+from models.events import Event, EventType\
+from datetime import datetime\
+\
+async def test():\
+    try:\
+        # Test event bus\
+        await event_bus.connect()\
+        \
+        # Create test event\
+        test_event = Event(\
+            type=EventType.RETURN_API_FAILURE,\
+            key='test-key',\
+            payload={'test': 'data'},\
+            ts=datetime.now(),\
+            trace_id='test-123'\
+        )\
+        \
+        # Publish event\
+        await event_bus.publish(test_event)\
+        print('Event published successfully')\
+        \
+        # Test subscription\
+        async for event in event_bus.subscribe([EventType.RETURN_API_FAILURE]):\
+            print('Event received:', event.type, event.trace_id)\
+            break\
+            \
+        await event_bus.disconnect()\
+        print('Event bus test completed')\
+        \
+    except Exception as e:\
+        print('Event bus test error:', e)\
+        import traceback\
+        traceback.print_exc()\
+\
+asyncio.run(test())\
+"
+cd .. && source .venv/bin/activate && cd backend && python main.py
+source /Users/priyanshigupta/Hackathons/SelfHealingAgents/.venv/bin/activate
+git pull
+python3 main.py
+cd backend
+python main.py
+cd /Users/priyanshigupta/Hackathons/SelfHealingAgents && source .venv/bin/activate && cd backend && python -c "print('Quick test - Event bus import:', 'OK')"
+cd .. && source .venv/bin/activate && cd backend && python -c "from main import app; print('Main app imports successfully')"
+cd .. && source .venv/bin/activate && cd backend && python -c "\
+import asyncio\
+from agents.rca_agent import rca_agent\
+from models.events import TraceStep, FailureDetail\
+from datetime import datetime\
+\
+async def test():\
+    try:\
+        test_step = TraceStep(\
+            trace_id='test-123',\
+            step='CheckReturnEligibility',\
+            input={'sku': 'SKU-1001'},\
+            output={},\
+            schema_ok=False,\
+            failure=FailureDetail(\
+                type='SchemaMismatch',\
+                field='return_policy',\
+                message='return_policy field is missing'\
+            ),\
+            latency_ms=100,\
+            timestamp=datetime.now()\
+        )\
+        \
+        # Test the actual API call\
+        result = await rca_agent._analyze_with_anthropic(test_step)\
+        print('Result:', result)\
+        \
+    except Exception as e:\
+        print('Error:', e)\
+\
+asyncio.run(test())\
+"
+cd .. && source .venv/bin/activate && cd backend && python -c "\
+import asyncio\
+from agents.rca_agent import rca_agent\
+from models.events import TraceStep, FailureDetail\
+from datetime import datetime\
+\
+async def test():\
+    try:\
+        test_step = TraceStep(\
+            trace_id='test-123',\
+            step='CheckReturnEligibility',\
+            input={'sku': 'SKU-1001'},\
+            output={},\
+            schema_ok=False,\
+            failure=FailureDetail(\
+                type='SchemaMismatch',\
+                field='return_policy',\
+                message='return_policy field is missing'\
+            ),\
+            latency_ms=100,\
+            timestamp=datetime.now()\
+        )\
+        \
+        result = await rca_agent._analyze_with_anthropic(test_step)\
+        print('âƒ¼ƒ¥ Fixed RCA Agent Result:', result)\
+        \
+    except Exception as e:\
+        print('âƒ½ƒ¬ Error:', e)\
+\
+asyncio.run(test())\
+"
+cd .. && source .venv/bin/activate && cd backend && python -c "from agents.coordinator_agent import coordinator_agent; print('âƒ¼ƒ¥ Coordinator Agent imported successfully')"
+cd .. && source .venv/bin/activate && cd backend && timeout 10 python -c "\
+import asyncio\
+from main import app\
+print('âƒ¼ƒ¥ Main app imports successfully')\
+\
+# Test startup\
+async def test_startup():\
+    try:\
+        from contextlib import asynccontextmanager\
+        lifespan = app.router.lifespan_context\
+        print('âƒ¼ƒ¥ Lifespan context found')\
+    except Exception as e:\
+        print('âƒ½ƒ¬ Lifespan error:', e)\
+\
+asyncio.run(test_startup())\
+"
+cd .. && source .venv/bin/activate && cd backend && python -c "\
+import asyncio\
+from main import app\
+print('âƒ¼ƒ¥ Main app imports successfully')\
+\
+# Test startup\
+async def test_startup():\
+    try:\
+        from contextlib import asynccontextmanager\
+        lifespan = app.router.lifespan_context\
+        print('âƒ¼ƒ¥ Lifespan context found')\
+    except Exception as e:\
+        print('âƒ½ƒ¬ Lifespan error:', e)\
+\
+asyncio.run(test_startup())\
+"
+cd .. && source .venv/bin/activate && cd backend && python -c "\
+import asyncio\
+from agents.rca_agent import rca_agent\
+from models.events import TraceStep, FailureDetail\
+from datetime import datetime\
+\
+async def test():\
+    try:\
+        test_step = TraceStep(\
+            trace_id='test-123',\
+            step='CheckReturnEligibility',\
+            input={'sku': 'SKU-1001'},\
+            output={},\
+            schema_ok=False,\
+            failure=FailureDetail(\
+                type='SchemaMismatch',\
+                field='return_policy',\
+                message='return_policy field is missing'\
+            ),\
+            latency_ms=100,\
+            timestamp=datetime.now()\
+        )\
+        \
+        result = await rca_agent._analyze_with_anthropic(test_step)\
+        print('âƒ¼ƒ¥ Enhanced RCA Agent Result:')\
+        print('Root Cause:', result.get('root_cause', 'N/A'))\
+        print('Playbook:', result.get('playbook', 'N/A'))\
+        print('Confidence:', result.get('confidence', 'N/A'))\
+        print('Risk Level:', result.get('risk_level', 'N/A'))\
+        \
+        if 'reasoning' in result:\
+            print('\nðƒ¿§ƒ€ REASONING:')\
+            print('Analysis Steps:', len(result['reasoning'].get('analysis_steps', [])))\
+            print('Evidence:', result['reasoning'].get('evidence', 'N/A'))\
+            print('Patterns:', result['reasoning'].get('patterns_recognized', 'N/A'))\
+            \
+        if 'recommendations' in result:\
+            print('\nðƒ¿ƒ²ƒ RECOMMENDATIONS:')\
+            print('Immediate Action:', result['recommendations'].get('immediate_action', 'N/A'))\
+            print('Prevention:', result['recommendations'].get('prevention', 'N/A'))\
+        \
+    except Exception as e:\
+        print('âƒ½ƒ¬ Error:', e)\
+\
+asyncio.run(test())\
+"
+python -c "\
+import asyncio\
+from agents.patch_generator import PatchGenerator\
+from models.events import RCAPlan\
+from datetime import datetime\
+\
+async def test():\
+    try:\
+        generator = PatchGenerator()\
+        \
+        # Mock RCA plan\
+        plan = RCAPlan(\
+            playbook='OutOfDateCatalogPolicy',\
+            cause='Missing return_policy field',\
+            risk_score=0.3,\
+            confidence=0.95,\
+            patch_spec={\
+                'type': 'add_field',\
+                'file': 'catalog.py',\
+                'change': '+ return_policy'\
+            }\
+        )\
+        \
+        # Test code\
+        original_code = 'POLICY_FIELDS = [\"price\", \"inventory\", \"category\"]'\
+        \
+        print('ðƒ¿ƒ´§ Testing Enhanced Patch Generator...')\
+        result = await generator.generate_patch(plan, original_code, 'test-123')\
+        \
+        if result:\
+            print('âƒ¼ƒ¥ Patch generated successfully!')\
+            print(f'File: {result.file}')\
+            print(f'LOC Changed: {result.loc_changed}')\
+            print(f'Diff Lines: {len(result.diff_lines)}')\
+        else:\
+            print('âƒ½ƒ¬ Patch generation failed')\
+            \
+    except Exception as e:\
+        print(f'âƒ½ƒ¬ Error: {e}')\
+\
+asyncio.run(test())\
+"
+python -c "\
+import asyncio\
+from agents.rca_agent import rca_agent\
+from agents.patch_generator import PatchGenerator\
+from models.events import TraceStep, FailureDetail\
+from datetime import datetime\
+\
+async def test_full_reasoning():\
+    print('ðƒ¿§ƒ€ Testing Enhanced RCA Agent with Detailed Reasoning...')\
+    \
+    # Test RCA Agent\
+    test_step = TraceStep(\
+        trace_id='test-reasoning-123',\
+        step='CheckReturnEligibility',\
+        input={'sku': 'SKU-1001'},\
+        output={},\
+        schema_ok=False,\
+        failure=FailureDetail(\
+            type='SchemaMismatch',\
+            field='return_policy',\
+            message='return_policy field is missing'\
+        ),\
+        latency_ms=100,\
+        timestamp=datetime.now()\
+    )\
+    \
+    try:\
+        # Test RCA analysis\
+        rca_result = await rca_agent._analyze_with_anthropic(test_step)\
+        print('\\nâƒ¼ƒ¥ RCA Analysis Result:')\
+        print(f'Root Cause: {rca_result.get(\"root_cause\", \"N/A\")}')\
+        print(f'Playbook: {rca_result.get(\"playbook\", \"N/A\")}')\
+        print(f'Confidence: {rca_result.get(\"confidence\", \"N/A\")}')\
+        \
+        if 'reasoning' in rca_result:\
+            print('\\nðƒ¿§ƒ€ DETAILED REASONING:')\
+            reasoning = rca_result['reasoning']\
+            for i, step in enumerate(reasoning.get('analysis_steps', []), 1):\
+                print(f'{i}. {step}')\
+            print(f'\\nEvidence: {reasoning.get(\"evidence\", \"N/A\")}')\
+            print(f'Patterns: {reasoning.get(\"patterns_recognized\", \"N/A\")}')\
+            print(f'Confidence Explanation: {reasoning.get(\"confidence_explanation\", \"N/A\")}')\
+            \
+        if 'recommendations' in rca_result:\
+            print('\\nðƒ¿ƒ²ƒ RECOMMENDATIONS:')\
+            recs = rca_result['recommendations']\
+            print(f'Immediate Action: {recs.get(\"immediate_action\", \"N/A\")}')\
+            print(f'Prevention: {recs.get(\"prevention\", \"N/A\")}')\
+            print(f'Monitoring: {recs.get(\"monitoring\", \"N/A\")}')\
+            \
+    except Exception as e:\
+        print(f'âƒ½ƒ¬ RCA Error: {e}')\
+    \
+    print('\\n' + '='*60)\
+    print('ðƒ¿ƒ´§ Testing Enhanced Patch Generator with Reasoning...')\
+    \
+    try:\
+        # Test Patch Generator\
+        generator = PatchGenerator()\
+        plan = type('MockPlan', (), {\
+            'playbook': 'OutOfDateCatalogPolicy',\
+            'cause': 'Missing return_policy field',\
+            'risk_score': 0.3,\
+            'confidence': 0.95,\
+            'patch_spec': {\
+                'type': 'add_field',\
+                'file': 'catalog.py',\
+                'change': '+ return_policy'\
+            }\
+        })()\
+        \
+        original_code = 'POLICY_FIELDS = [\"price\", \"inventory\", \"category\"]'\
+        result = await generator.generate_patch(plan, original_code, 'test-reasoning-123')\
+        \
+        if result:\
+            print('âƒ¼ƒ¥ Patch Generated with Reasoning!')\
+            print(f'File: {result.file}')\
+            print(f'LOC Changed: {result.loc_changed}')\
+            print(f'Diff Lines: {len(result.diff_lines)}')\
+            \
+            # Show the diff\
+            print('\\nðƒ¿ƒ³ƒ½ Code Changes:')\
+            for line in result.diff_lines:\
+                if line.startswith('+') or line.startswith('-'):\
+                    print(line.rstrip())\
+        else:\
+            print('âƒ½ƒ¬ Patch generation failed')\
+            \
+    except Exception as e:\
+        print(f'âƒ½ƒ¬ Patch Generator Error: {e}')\
+\
+asyncio.run(test_full_reasoning())\
+"
+cd /Users/priyanshigupta/Hackathons/SelfHealingAgents && source .venv/bin/activate && cd backend
+curl -s http://localhost:8000/health || echo "Backend not ready yet"
+sleep 3 && curl -s http://localhost:8000/health || echo "Still starting up..."
+ps aux | grep "python main.py" | grep -v grep
+python main.py
+cd /Users/priyanshigupta/Hackathons/SelfHealingAgents && source .venv/bin/activate && cd backend
+curl -X POST "http://localhost:8000/api/trigger-failure" -H "Content-Type: application/json" -d '{"failure_type": "SchemaMismatch", "field": "return_policy", "message": "return_policy field is missing", "step": "CheckReturnEligibility", "input": {"sku": "SKU-1001"}}'
+cd backend && source ../.venv/bin/activate && python main.py
+curl -X POST "http://localhost:8000/api/trigger-failure" -H "Content-Type: application/json" -d '{"failure_type": "SchemaMismatch", "field": "return_policy", "message": "return_policy field is missing", "step": "CheckReturnEligibility", "input": {"sku": "SKU-1001"}}'
+sleep 5 && echo "Checking if backend is running..." && curl -s http://localhost:8000/health || echo "Backend not responding yet"
+curl -X POST "http://localhost:8000/api/trigger-failure" -H "Content-Type: application/json" -d '{"failure_type": "SchemaMismatch", "field": "return_policy", "message": "return_policy field is missing", "step": "CheckReturnEligibility", "input": {"sku": "SKU-1001"}}'
+ps aux | grep "python main.py" | grep -v grep
+cd backend && source ../.venv/bin/activate && python main.py
+lsof -i :8000
+curl -X POST "http://localhost:8000/api/trigger-failure" -H "Content-Type: application/json" -d '{"failure_type": "SchemaMismatch", "field": "return_policy", "message": "return_policy field is missing", "step": "CheckReturnEligibility", "input": {"sku": "SKU-1001"}}' && echo "" && echo "Failure triggered, checking logs..."
+ls -la *.log 2>/dev/null || echo "No log files found" && echo "Checking for any output files..."
+tail -50 app.log
+pkill -f "python main.py" && echo "Backend stopped" && sleep 2
+python main.py
+curl -X POST "http://localhost:8000/api/trigger-failure" -H "Content-Type: application/json" -d '{"failure_type": "SchemaMismatch", "field": "return_policy", "message": "return_policy field is missing", "step": "CheckReturnEligibility", "input": {"sku": "SKU-1001"}}'
+cd backend && tail -f app.log
+cd /Users/priyanshigupta/Hackathons/SelfHealingAgents/backend && python main.py
+source .venv/bin/activate && python main.py
+ls -la
+cd .. && ls -la
+source .venv/bin/activate && cd backend && python main.py
+python main.py
+cd backend && python -m flake8 agents/rca_agent.py --max-line-length=79
+python3 -m flake8 agents/rca_agent.py --max-line-length=79
+python3 -m py_compile agents/rca_agent.py
+cd .. && python3 test_rca_evaluation.py
+cd backend && python3 -c "from agents.coordinator_agent import coordinator_agent; print('CoordinatorAgent imported successfully')"
+cd .. && source .venv/bin/activate && cd backend && python3 -c "from agents.coordinator_agent import coordinator_agent; print('CoordinatorAgent imported successfully')"
+cd .. && source .venv/bin/activate && cd backend && python3 -c "from agents.patch_generator import patch_generator; print('âƒ¼ƒ¥ PatchGenerator imported successfully'); print('âƒ¼ƒ¥ Ready to test MorphAI code editing')"
+python3 test_morph_editing.py
+cd .. && python3 test_morph_editing.py
+cd backend && python3 -c "from agents.coordinator_agent import coordinator_agent; print('âƒ¼ƒ¥ CoordinatorAgent imported successfully'); print('âƒ¼ƒ¥ Fixed to monitor RCA_READY events')"

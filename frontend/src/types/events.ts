@@ -37,6 +37,34 @@ export interface HealingTrace {
   code_change?: CodeChange;
   verification?: VerificationResult;
   audit?: AuditInfo;
+  // 🔧 Enhanced: AI analysis details
+  detailed_reasoning?: {
+    analysis_steps?: string[];
+    evidence?: string;
+    patterns_recognized?: string;
+    confidence_explanation?: string;
+    alternative_playbooks?: string[];
+    risk_assessment?: string;
+  };
+  technical_details?: {
+    affected_components?: string[];
+    data_flow_impact?: string;
+    performance_implications?: string;
+    security_considerations?: string;
+    scalability_concerns?: string;
+  };
+  code_analysis?: {
+    file_patterns?: string[];
+    function_signatures?: string;
+    data_structures?: string;
+    api_contracts?: string;
+  };
+  recommendations?: {
+    immediate_action?: string;
+    prevention?: string;
+    monitoring?: string;
+    long_term_improvements?: string;
+  };
 }
 
 export interface CodeChange {
@@ -50,6 +78,9 @@ export interface CodeChange {
     no_dangerous_ops: boolean;
   };
   diff_id?: string;
+  // 🔧 OPTIMIZED: Essential code change information only
+  original_code?: string;
+  updated_code?: string;
 }
 
 export interface VerificationResult {
